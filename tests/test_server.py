@@ -41,6 +41,10 @@ def test_tools_registered():
         "browser_stop_recording",
         "browser_play_flow",
         "browser_list_flows",
+        "browser_save_session",
+        "browser_load_session",
+        "browser_list_sessions",
+        "browser_delete_session",
     ]
     for t in expected:
         assert t in tools, f"Missing tool: {t}"

@@ -78,6 +78,14 @@ For common tasks, **always prefer flow tools** over raw browser tools. They use 
 2. **Stop:** Call `browser_stop_recording()`. The steps are saved to `flows/saved/login.json`.
 3. **Replay:** Call `browser_play_flow("login")`. It will replay your exact actions deterministically.
 
+## Sessions (v0.4)
+
+**Sessions — save your login state once, reuse it forever.** Use `browser_save_session` after logging in manually, then `browser_load_session` at the start of any task that needs authentication. This prevents you from having to log in every time or deal with 2FA repeatedly.
+
+1. **Login Manually:** Use `browser_navigate` and `browser_type` to log in.
+2. **Save Session:** Call `browser_save_session(name="github")`.
+3. **Reuse Session:** In a new chat, call `browser_load_session("github")` before navigating to GitHub.
+
 ## Error handling
 
 - If `browser_click_text` fails → try `browser_click_selector` with id/class from snapshot

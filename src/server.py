@@ -19,6 +19,7 @@ from flows.google_search import google_search
 from flows.fill_form import fill_form
 from flows.recorder import FlowRecorder
 from flows.player import play_flow
+from sessions.manager import save_session, load_session, list_sessions, delete_session
 
 mcp = FastMCP(
     name="browsemcp",
@@ -45,10 +46,19 @@ SPEED TIPS:
 _pw = None
 _browser = None
 _page = None
+_active_session = None
 
 
-def _get_page():
-    global _pw, _browser, _page
+def _get_page(session_name: str = None):
+    global _pw, _browser, _page, _active_session
+    
+    # If a new session is requested, close existing to reload state
+    if session_name is not None and session_name != _active_session:
+        if _page:
+            _page.close()
+        _page = None
+        _active_session = session_name
+
     if _page is None or _page.is_closed():
         if _pw is None:
             _pw = sync_playwright().start()
@@ -57,14 +67,24 @@ def _get_page():
                 headless=os.getenv("BROWSEMCP_HEADLESS", "false").lower() == "true",
                 args=["--no-sandbox", "--disable-dev-shm-usage"],
             )
-        ctx = _browser.new_context(
-            viewport={"width": 1280, "height": 800},
-            user_agent=(
+        
+        context_args = {
+            "viewport": {"width": 1280, "height": 800},
+            "user_agent": (
                 "Mozilla/5.0 (X11; Linux x86_64) "
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/120.0.0.0 Safari/537.36"
-            ),
-        )
+            )
+        }
+        
+        # Load session state if active
+        if _active_session:
+            session_path = load_session(_active_session)
+            if session_path:
+                context_args["storage_state"] = session_path
+                print(f"Loaded session: {_active_session}")
+
+        ctx = _browser.new_context(**context_args)
         _page = ctx.new_page()
         # Block heavy resources to speed up page loads
         _page.route(
@@ -347,6 +367,7 @@ def browser_close() -> str:
     _browser = None
     _page = None
     _pw = None
+    _active_session = None
     return "Browser closed."
 
 
@@ -455,3 +476,54 @@ def browser_list_flows() -> str:
         return "No flows found."
 
     return "Saved Flows:\n- " + "\n- ".join(flows)
+
+
+# ── Session Tools ────────────────────────────────────────────────────────────
+
+
+@mcp.tool
+def browser_save_session(name: str) -> str:
+    """
+    Save current browser login state (cookies + localStorage) to a session.
+    Use this after logging in manually to persist your session.
+    """
+    page = _get_page()
+    path = save_session(page, name)
+    return f"Session saved as '{name}' to {path}"
+
+
+@mcp.tool
+def browser_load_session(name: str) -> str:
+    """
+    Load a saved session. Must be called BEFORE navigation for the session to apply.
+    Resets the browser context to include session cookies.
+    """
+    global _active_session
+    _active_session = name
+    # Force reload page context on next tool call
+    global _page
+    if _page:
+        _page.close()
+    _page = None
+    return f"Session '{name}' loaded. It will be applied to the next browser action."
+
+
+@mcp.tool
+def browser_list_sessions() -> str:
+    """
+    List all saved session names.
+    """
+    sessions = list_sessions()
+    if not sessions:
+        return "No sessions found."
+    return "Saved Sessions:\n- " + "\n- ".join(sessions)
+
+
+@mcp.tool
+def browser_delete_session(name: str) -> str:
+    """
+    Delete a saved session.
+    """
+    if delete_session(name):
+        return f"Session '{name}' deleted."
+    return f"Session '{name}' not found."
