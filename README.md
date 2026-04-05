@@ -1,162 +1,72 @@
-# browsemcp
+# browsemcp 🌐
 
-> Fast browser automation as a Gemini CLI extension.  
-> Accessibility tree first. Screenshots only when needed. No IDE overhead.
+**browsemcp** is a high-performance browser automation extension for the Gemini CLI. It provides a suite of 27 MCP tools designed for speed, reliability, and ease of use, utilizing Playwright under the hood.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Gemini CLI](https://img.shields.io/badge/Gemini%20CLI-Extension-blue)](https://github.com/google-gemini/gemini-cli)
+## 🚀 Features
 
----
+- **27 MCP Tools**: Comprehensive control over a real browser (Chromium).
+- **Accessibility-First**: Uses the accessibility tree for observation, making it 10x faster and cheaper than vision-based scraping.
+- **Pre-built Flows**: Specialized, high-speed tools for Amazon.in, Google Search, and GitHub Trending.
+- **Flow Recorder**: Record manual browser actions once and replay them deterministically without AI latency.
+- **Session Persistence**: Save login states (cookies + localStorage) to stay authenticated across tasks.
+- **Developer Friendly**: Built-in health check script and a clean, modular architecture.
 
-## What is this?
+## 📦 Installation
 
-browsemcp is a [Gemini CLI](https://github.com/google-gemini/gemini-cli) extension that gives Gemini a real browser to control. You describe what you want in plain English — Gemini figures out the clicks, typing, and navigation.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/premkumar-epic/browsermcp.git
+   cd browsermcp
+   ```
 
-```
-gemini> open amazon.in and find the cheapest boAt earphones under 2000
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   playwright install chromium
+   ```
 
-gemini> go to github trending and summarize the top 5 repos today
+3. **Install as Gemini CLI Extension:**
+   ```bash
+   gemini extensions install .
+   ```
 
-gemini> fill out this google form with my name Prem and email prem@gmail.com
-```
+## 🛠 Usage
 
-### Why not just use Antigravity?
+### Core Tools
+- `browser_navigate(url)`: Go to any website.
+- `browser_snapshot()`: Get the accessibility tree (primary observation tool).
+- `browser_screenshot()`: Visual fallback for canvas or image-heavy sites.
+- `browser_click_text(label)`: Click buttons or links by their visible text.
+- `browser_type_text(label, text)`: Fill inputs by placeholder or label.
 
-Antigravity's browser agent is slow because:
-- It boots a full Electron IDE before doing anything
-- It takes a screenshot every single step (expensive, slow)
-- Quota runs out fast — you get ~20 minutes of heavy use
+### Pre-built Flows (v0.2)
+- `browser_flow_amazon_search(query)`: Get top 5 results from Amazon.in.
+- `browser_flow_google_search(query)`: Fast Google search results.
+- `browser_flow_github_trending()`: Today's top repositories.
+- `browser_flow_fill_form(url, fields)`: Automate form filling.
 
-**browsemcp is different:**
-- Starts in under a second (just `gemini` in your terminal)
-- Uses the **accessibility tree by default** — structured text, not images, 10× cheaper per step
-- You bring your own API key — no quota anxiety
-- Works alongside everything else in Gemini CLI
+### Flow Recorder (v0.3)
+- `browser_record_flow(name)`: Start recording your manual actions.
+- `browser_stop_recording()`: Save the recording.
+- `browser_play_flow(name)`: Replay actions deterministically.
 
----
+### Sessions (v0.4)
+- `browser_save_session(name)`: Save your login state after manual login.
+- `browser_load_session(name)`: Reuse a session to stay authenticated.
 
-## Install
+## ⚙️ Configuration
 
-### Prerequisites
+Set these environment variables in your `.env` or shell:
+- `BROWSEMCP_HEADLESS`: `true` to run without a window (default: `false`).
+- `BROWSEMCP_BLOCK_MEDIA`: `true` to block images/fonts for faster loading (default: `false`).
 
-- Node.js 18+
-- Python 3.10+
-- [Gemini CLI](https://github.com/google-gemini/gemini-cli): `npm install -g @google/gemini-cli`
+## 🧪 Development & Health Check
 
-### 1. Clone and install dependencies
-
+Run the health check script to verify your installation and any changes:
 ```bash
-git clone https://github.com/YOUR_USERNAME/browsemcp
-cd browsemcp
-pip install -r requirements.txt
-playwright install chromium
+python scripts/healthcheck.py --no-browser
 ```
 
-### 2. Install as a Gemini CLI extension
+## 📄 License
 
-```bash
-# From inside the browsemcp directory:
-gemini extensions install .
-
-# Verify it's loaded:
-gemini mcp list
-# Should show: browsemcp ✓
-```
-
-### 3. Use it
-
-```bash
-gemini
-```
-
-Then just talk to it naturally:
-
-```
-> search flipkart for mechanical keyboards under 3000 and tell me the top 3 results
-> open hacker news and summarize the front page
-> go to weather.com and tell me the forecast for Bangalore
-```
-
----
-
-## Available tools
-
-| Tool | When Gemini uses it |
-|---|---|
-| `browser_navigate` | Go to a URL |
-| `browser_snapshot` | Read the page structure (PRIMARY — fast, text-based) |
-| `browser_screenshot` | See the page visually (fallback for canvas/image-heavy pages) |
-| `browser_click_text` | Click by visible label — most reliable |
-| `browser_click_selector` | Click by CSS selector |
-| `browser_click_coordinates` | Click by x/y — last resort |
-| `browser_type` | Type into a field by selector |
-| `browser_type_text` | Type into a field by placeholder/label |
-| `browser_key` | Press a key (Enter, Escape, Tab…) |
-| `browser_scroll` | Scroll up or down |
-| `browser_extract_text` | Get visible text from the page |
-| `browser_go_back` | Navigate back |
-| `browser_current_url` | Check current URL |
-| `browser_wait` | Wait for page to load |
-| `browser_close` | Close the browser |
-
-You never call these directly — Gemini picks the right ones based on your prompt.
-
----
-
-## Configuration
-
-Set environment variables before running `gemini`:
-
-```bash
-# Run browser headlessly (no visible window)
-export BROWSEMCP_HEADLESS=true
-
-# Block images/fonts for faster page loads (breaks visual pages)
-export BROWSEMCP_BLOCK_MEDIA=true
-```
-
-Or set them permanently in the extension config at `~/.gemini/extensions/browsemcp/extension.json`.
-
----
-
-## How it works
-
-browsemcp uses a **snapshot-first** strategy:
-
-```
-1. Navigate to page
-2. Call browser_snapshot → returns structured accessibility tree (text, fast)
-3. Gemini reads the tree, decides what to do
-4. Execute action (click/type/scroll)
-5. Repeat from step 2
-6. Only use browser_screenshot when the page is visual/canvas-heavy
-```
-
-This is 10× cheaper per step than screenshot-based agents (Antigravity, browser-use) because:
-- Accessibility tree = ~80 tokens per page
-- Screenshot = ~800 tokens per page (needs vision model)
-
----
-
-## Roadmap
-
-- [ ] **v0.1** — Core MCP server (accessibility tree + screenshot fallback) ← *you are here*
-- [ ] **v0.2** — Pre-built flows (amazon search, github nav, form fill, scraping)
-- [ ] **v0.3** — Flow recorder (record your own reusable flows)
-- [ ] **v0.4** — Session persistence (save/restore cookies and login state)
-- [ ] **v0.5** — Multi-tab support
-
----
-
-## Contributing
-
-PRs welcome. This is an early project — the most useful contributions right now are:
-- Bug reports on specific websites that don't work well
-- New pre-built flows (in the `flows/` directory)
-- Better GEMINI.md prompting strategies
-
----
-
-## License
-
-MIT
+MIT License. See [LICENSE](LICENSE) for details.
