@@ -8,6 +8,15 @@ from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 import base64
 import json
 import os
+import sys
+
+# Add root to sys.path to allow importing flows
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from flows.amazon_search import amazon_search
+from flows.github_trending import github_trending
+from flows.google_search import google_search
+from flows.fill_form import fill_form
 
 mcp = FastMCP(
     name="browsemcp",
@@ -337,3 +346,45 @@ def browser_close() -> str:
     _page = None
     _pw = None
     return "Browser closed."
+
+
+# ── Flow Tools ──────────────────────────────────────────────────────────────
+
+
+@mcp.tool
+def browser_flow_amazon_search(query: str) -> str:
+    """
+    Search Amazon.in for the query and return top 5 results as list of {name, price, link}
+    Faster than manual browsing as it uses specialized logic.
+    """
+    results = amazon_search(query)
+    return json.dumps(results, indent=2)
+
+
+@mcp.tool
+def browser_flow_github_trending() -> str:
+    """
+    Fetch today's trending repositories from GitHub and return list of {name, description, stars, url}
+    """
+    results = github_trending()
+    return json.dumps(results, indent=2)
+
+
+@mcp.tool
+def browser_flow_google_search(query: str) -> str:
+    """
+    Search Google and return top results as list of {title, url, snippet}
+    Faster than manual browsing.
+    """
+    results = google_search(query)
+    return json.dumps(results, indent=2)
+
+
+@mcp.tool
+def browser_flow_fill_form(url: str, fields: dict) -> str:
+    """
+    Navigate to a URL and fill form fields by label -> value.
+    Example: browser_flow_fill_form("https://example.com/login", {"Email": "user@example.com", "Password": "password123"})
+    """
+    results = fill_form(url, fields)
+    return json.dumps(results, indent=2)

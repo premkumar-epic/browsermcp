@@ -61,6 +61,15 @@ browser_type_text("Email", "prem@example.com")
 browser_click_text("Submit")
 ```
 
+## Flow Tools (v0.2)
+
+For common tasks, **always prefer flow tools** over raw browser tools. They use specialized logic, are significantly faster, and skip the observe→think→act loop.
+
+- `browser_flow_amazon_search(query)`
+- `browser_flow_github_trending()`
+- `browser_flow_google_search(query)`
+- `browser_flow_fill_form(url, fields)`
+
 ## Error handling
 
 - If `browser_click_text` fails → try `browser_click_selector` with id/class from snapshot

@@ -33,6 +33,10 @@ def test_tools_registered():
         "browser_go_back",
         "browser_current_url",
         "browser_close",
+        "browser_flow_amazon_search",
+        "browser_flow_github_trending",
+        "browser_flow_google_search",
+        "browser_flow_fill_form",
     ]
     for t in expected:
         assert t in tools, f"Missing tool: {t}"
