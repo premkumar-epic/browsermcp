@@ -11,6 +11,8 @@ from flows.amazon_search import amazon_search
 from flows.github_trending import github_trending
 from flows.google_search import google_search
 from flows.fill_form import fill_form
+from flows.recorder import FlowRecorder
+from flows.player import play_flow
 
 def test_amazon_search_signature():
     assert callable(amazon_search)
@@ -28,9 +30,19 @@ def test_fill_form_signature():
     assert callable(fill_form)
     print("✓ fill_form is callable")
 
+def test_recorder_signature():
+    assert callable(FlowRecorder)
+    print("✓ FlowRecorder is callable")
+
+def test_player_signature():
+    assert callable(play_flow)
+    print("✓ play_flow is callable")
+
 if __name__ == "__main__":
     test_amazon_search_signature()
     test_github_trending_signature()
     test_google_search_signature()
     test_fill_form_signature()
+    test_recorder_signature()
+    test_player_signature()
     print("\n✅ All flow structure checks passed")

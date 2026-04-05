@@ -37,6 +37,10 @@ def test_tools_registered():
         "browser_flow_github_trending",
         "browser_flow_google_search",
         "browser_flow_fill_form",
+        "browser_record_flow",
+        "browser_stop_recording",
+        "browser_play_flow",
+        "browser_list_flows",
     ]
     for t in expected:
         assert t in tools, f"Missing tool: {t}"

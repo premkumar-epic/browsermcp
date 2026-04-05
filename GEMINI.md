@@ -70,6 +70,14 @@ For common tasks, **always prefer flow tools** over raw browser tools. They use 
 - `browser_flow_google_search(query)`
 - `browser_flow_fill_form(url, fields)`
 
+## Flow Recorder (v0.3)
+
+**Flow Recorder — record once, replay instantly.** Use `browser_record_flow` to capture a task, and `browser_play_flow` to repeat it without any AI reasoning. This is perfect for repetitive workflows, logging into internal systems, or complex multi-step scraping.
+
+1. **Record:** Call `browser_record_flow(name="login")`. A browser window opens. Perform the task manually.
+2. **Stop:** Call `browser_stop_recording()`. The steps are saved to `flows/saved/login.json`.
+3. **Replay:** Call `browser_play_flow("login")`. It will replay your exact actions deterministically.
+
 ## Error handling
 
 - If `browser_click_text` fails → try `browser_click_selector` with id/class from snapshot

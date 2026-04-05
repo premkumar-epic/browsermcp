@@ -17,6 +17,8 @@ from flows.amazon_search import amazon_search
 from flows.github_trending import github_trending
 from flows.google_search import google_search
 from flows.fill_form import fill_form
+from flows.recorder import FlowRecorder
+from flows.player import play_flow
 
 mcp = FastMCP(
     name="browsemcp",
@@ -388,3 +390,68 @@ def browser_flow_fill_form(url: str, fields: dict) -> str:
     """
     results = fill_form(url, fields)
     return json.dumps(results, indent=2)
+
+
+# ── Recorder Tools ───────────────────────────────────────────────────────────
+
+_recorder = None
+_recorded_name = None
+
+
+@mcp.tool
+def browser_record_flow(name: str, url: str = "https://www.google.com") -> str:
+    """
+    Start recording a manual flow. A browser window will open.
+    Perform your actions, then call browser_stop_recording() when done.
+    The flow will be saved with the given 'name'.
+    """
+    global _recorder, _recorded_name
+    if _recorder is not None:
+        return "ERROR: A recording is already in progress. Call browser_stop_recording() first."
+
+    _recorded_name = name
+    _recorder = FlowRecorder()
+    _recorder.start(url)
+    return f"Recording started for flow '{name}'. A browser window has opened. Go ahead and perform the task manually, then call browser_stop_recording() in this chat when done."
+
+
+@mcp.tool
+def browser_stop_recording() -> str:
+    """
+    Stop the current recording and save it.
+    """
+    global _recorder, _recorded_name
+    if _recorder is None:
+        return "ERROR: No recording in progress."
+
+    steps = _recorder.stop()
+    path = _recorder.save(_recorded_name)
+    _recorder = None
+    _recorded_name = None
+    return f"Recording stopped. Saved {len(steps)} steps to {path}. You can now play it back with browser_play_flow('{name}')."
+
+
+@mcp.tool
+def browser_play_flow(name: str) -> str:
+    """
+    Replay a previously recorded flow.
+    Faster and more reliable for repetitive tasks as it doesn't use AI reasoning.
+    """
+    results = play_flow(name)
+    return json.dumps(results, indent=2)
+
+
+@mcp.tool
+def browser_list_flows() -> str:
+    """
+    List all saved flows that can be played back.
+    """
+    path = "flows/saved"
+    if not os.path.exists(path):
+        return "No flows found."
+
+    flows = [f.replace(".json", "") for f in os.listdir(path) if f.endswith(".json")]
+    if not flows:
+        return "No flows found."
+
+    return "Saved Flows:\n- " + "\n- ".join(flows)
