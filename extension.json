@@ -1,0 +1,16 @@
+{
+  "name": "browsemcp",
+  "version": "0.1.0",
+  "description": "Fast browser automation for Gemini CLI — accessibility tree + vision fallback",
+  "mcpServers": {
+    "browsemcp": {
+      "command": "python",
+      "args": ["-m", "fastmcp", "run", "src/server.py"],
+      "env": {
+        "BROWSEMCP_HEADLESS": "false",
+        "BROWSEMCP_BLOCK_MEDIA": "false"
+      },
+      "trust": false
+    }
+  }
+}
